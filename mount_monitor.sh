@@ -1,8 +1,9 @@
 #!/bin/bash
 
 # Path to the INI file
-INI_FILE="mount-status.ini"
-CONFIG_FILE="mountmonitor-config.ini"
+SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+INI_FILE="$SCRIPT_DIR/mount-status.ini"
+CONFIG_FILE="$SCRIPT_DIR/mountmonitor-config.ini"
 
 SLACK_WEBHOOK_URL=$(awk -F'=' '/^\[Slack\]/{f=1} f==1&&$1~/^slack_hook_url/{print $2;exit}' $CONFIG_FILE)
 SLACK_CHANNEL=$(awk -F'=' '/^\[Slack\]/{f=1} f==1&&$1~/^slack_channel/{print $2;exit}' $CONFIG_FILE)
@@ -15,12 +16,13 @@ if [ -f "$CONFIG_FILE" ]; then
     if [ -z "$section_end" ]; then
         section_end="$(wc -l < "$CONFIG_FILE")"
     fi
-    MOUNTS=$(awk -F= -v start=$section_start -v end=$section_end 'NR>=start && NR<end{printf "%s ", $2}' "$CONFIG_FILE" | tr -d '\r\n')
+    MOUNTS=$(awk -F= -v start=$section_start -v end=$section_end 'NR>=start && NR<end{printf "%s ", $2}' "$CONFIG_FILE" | tr -d '\r\n') > /dev/null 2>&1
     if [ -z "$MOUNTS" ]; then
         echo "No mounts found in the [mounts] section of the config file"
         exit 1
     fi
 fi
+
 
 # Initialize the mount status from the INI file, or create the file if it doesn't exist
 declare -A MOUNT_STATUS
@@ -42,13 +44,12 @@ for mount in $MOUNTS; do
     if ! mountpoint -q $mount; then
         MOUNT_DISCONNECTED=1
         if [ "${MOUNT_STATUS[$mount]}" != "0" ]; then
-            echo "$mount is disconnected"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') $mount is disconnected"
             MOUNT_STATUS["$mount"]="0"
-            curl -X POST --data-urlencode "payload={\"channel\": \"$SLACK_CHANNEL\", \"username\": \"mount_monitor\", \"text\": \"$mount is *disconnected* on $(hostname)\", \"icon_emoji\": \":open_file_folder:\"}" $SLACK_WEBHOOK_URL -s
+            curl -X POST --data-urlencode "payload={\"channel\": \"$SLACK_CHANNEL\", \"username\": \"mount_monitor\", \"text\": \"$mount is *disconnected* on $(hostname)\", \"icon_emoji\": \":open_file_folder:\"}" $SLACK_WEBHOOK_URL -s > /dev/null 2>&1
         fi
     else
         if [ "${MOUNT_STATUS[$mount]}" != "1" ]; then
-            echo "$mount is reconnected"
             MOUNT_STATUS["$mount"]="1"
         fi
     fi
@@ -69,8 +70,8 @@ if [ $MOUNT_DISCONNECTED -eq 1 ]; then
     if [ $ALL_RECONNECTED -eq 1 ]; then
 
         # Call the Python script with arguments
-        /usr/bin/python3 mount_docker.py
-        echo "All mounts are reconnected"
+        /usr/bin/python3 $SCRIPT_DIR/mount_docker.py
+        echo "$(date '+%Y-%m-%d %H:%M:%S') All mounts are reconnected"
         curl -X POST --data-urlencode "payload={\"channel\": \"$SLACK_CHANNEL\", \"username\": \"mount_monitor\", \"text\": \"All mounts are *reconnected* on $(hostname)\", \"icon_emoji\": \":open_file_folder:\"}" $SLACK_WEBHOOK_URL -s
     fi
 fi
