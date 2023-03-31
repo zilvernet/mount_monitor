@@ -10,17 +10,16 @@ After reconnecting the mounts, the script restarts the Docker containers that de
 
 The script reads the configuration from a file named mountmonitor-config.ini. The configuration file should contain the following sections:
 
-[mounts]: Contains the list of mounts to check.
-[Slack]: Contains the Slack webhook URL and channel name to send notifications.
-[containers]: Contains the list of Docker containers to restart after the mounts have reconnected.
-If the configuration file is not found, the script uses the default mount list.
+- [mounts]: Contains the list of mounts to check.
+- [containers]: Contains the list of Docker containers to restart after the mounts have reconnected.
+- [Slack]: Contains the Slack webhook URL and channel name to send notifications.
 
 ## Dependencies:
 
-awk: The script uses awk to parse the configuration file.
-curl: The script uses curl to send notifications to Slack.
-docker: The script uses docker to restart the Docker containers.
-python: The script uses a Python script to restart the Docker containers.
+- awk: The script uses awk to parse the configuration file.
+- curl: The script uses curl to send notifications to Slack.
+- docker: The script uses docker to restart the Docker containers.
+- python: The script uses a Python script to restart the Docker containers.
 
 ## Compatibility:
 
