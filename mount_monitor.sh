@@ -23,8 +23,23 @@ if [ -f "$CONFIG_FILE" ]; then
     fi
 fi
 
+# Check if the number of mounts is different than the ones in the INI file
+MOUNTS_IN_INI=$(grep -c '^\s*/mnt/' "$INI_FILE")
+if [ "$MOUNTS_IN_INI" -ne $(echo "$MOUNTS" | wc -w) ]; then
+    echo "Number of mounts in the INI file is different than the ones in the config file, recreating the INI file"
+    rm -f "$INI_FILE"
+fi
 
 # Initialize the mount status from the INI file, or create the file if it doesn't exist
+if [ ! -f "$INI_FILE" ]; then
+    # Create the INI file with the initial mount status
+    touch "$INI_FILE"
+    chmod 644 "$INI_FILE"
+    for mount in $MOUNTS; do
+        echo "$mount=1" >> "$INI_FILE"
+    done
+fi
+
 declare -A MOUNT_STATUS
 if [ -f "$INI_FILE" ]; then
     while IFS='=' read -r key value; do
