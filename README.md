@@ -36,7 +36,7 @@ The script can be run manually by executing the command:
 The recommended usage for this script is to set up a Cron job that runs the script every 10 minutes. Here's an example of a Cron entry that runs the script every 10 minutes:
 
 ```
-*/10 * * * * /path/to/mount_monitor.sh > /dev/null 2>&1
+*/10 * * * * /path/to/mount_monitor.sh > /path/to/mount_monitor.log 2>&1
 ```
 
 Contributing:
