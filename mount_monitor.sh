@@ -102,9 +102,6 @@ for mount in $MOUNTS; do
     fi
 done
 
-echo "MOUNT_DISCONNECTED=$MOUNT_DISCONNECTED"
-read -p "press ENTER to continue"
-
 # If any mount is disconnected, reconnect the mounts with sudo mount -a
 if [ $MOUNT_DISCONNECTED -eq 1 ]; then
     sudo mount -a
