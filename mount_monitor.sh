@@ -38,7 +38,6 @@ MOUNTS_IN_STATUS=""
 if [ -f "$INI_FILE" ]; then
     while read -r line; do
         mount=$(echo "$line" | cut -d= -f1)
-        echo "mount:$mount"
         MOUNTS_IN_STATUS+="${mount} "  # Concatenate the mount to the existing string with a space separator
     done < "$INI_FILE"
     MOUNTS_IN_STATUS=${MOUNTS_IN_STATUS% }  # Remove trailing space
