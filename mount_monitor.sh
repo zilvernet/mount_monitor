@@ -78,13 +78,6 @@ for mount in $MOUNTS_IN_STATUS; do
     ((i++))
 done
 
-#for mount in "${!MOUNT_STATUS[@]}"; do
-#    echo "MOUNTS_STATUS $mount has status ${MOUNT_STATUS[$mount]}"
-#done
-#for mount in "${!MOUNTS[@]}"; do
-#    echo "MOUNTS $mount has mountpoint ${MOUNTS[$mount]}"
-#done
-
 # Check each mount and set MOUNT_DISCONNECTED to 1 if any mount is disconnected
 MOUNT_DISCONNECTED=0
 for mount in $MOUNTS; do
