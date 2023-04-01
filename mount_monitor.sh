@@ -12,8 +12,7 @@ SLACK_CHANNEL=$(awk -F'=' '/^\[Slack\]/{f=1} f==1&&$1~/^slack_channel/{print $2;
 MOUNTS_IN_CONFIG=""
 if [ -f "$CONFIG_FILE" ]; then
     section_start=$(awk '/^\[mounts\]/{print NR+1; exit 0;}' "$CONFIG_FILE")
-    section_end=$(awk '/^\[containers\]/{print NR-1; exit 0;}' "$CONFIG_FILE")
-    #echo "section_start:$section_start section_end:$section_end"
+    section_end=$(awk -v start="$section_start" '/^\[/ && NR > start {print NR-1; exit 0;}' "$CONFIG_FILE")
     if [ -z "$section_end" ]; then
         section_end="$(wc -l < "$CONFIG_FILE")"
     fi
@@ -70,12 +69,14 @@ else
     done
 fi
 
-declare -A MOUNTS
-i=0
-for mount in $MOUNTS_IN_STATUS; do
-    MOUNTS[$i]=$mount
-    ((i++))
-done
+MOUNTS=""
+if [ -f "$CONFIG_FILE" ]; then
+    MOUNTS=$(awk -F= -v start=$section_start -v end=$section_end 'NR>=start && NR<end{printf "%s ", $2}' "$CONFIG_FILE" | tr -d '\r\n')
+    if [ -z "$MOUNTS" ]; then
+        echo "No mounts found in the [mounts] section of the config file"
+        exit 1
+    fi
+fi
 
 # Check each mount and set MOUNT_DISCONNECTED to 1 if any mount is disconnected
 MOUNT_DISCONNECTED=0
